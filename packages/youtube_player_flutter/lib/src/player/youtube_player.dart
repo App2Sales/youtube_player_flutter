@@ -301,11 +301,13 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
   Widget _hideControlsHandler({required List<Widget> children}) {
     if (controller.flags.hideControls) return const SizedBox();
 
-    if (widget.customOverlay != null && controller.value.isControlsVisible) {
+    if (widget.customOverlay != null) {
       return Stack(
         children: [
           _buildTouchShutter(),
-          widget.customOverlay!,
+          (controller.value.isControlsVisible)
+              ? widget.customOverlay!
+              : const SizedBox(),
         ],
       );
     }
