@@ -303,6 +303,7 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
 
     if (widget.customOverlay != null) {
       return Stack(
+        fit: StackFit.expand,
         children: [
           _buildTouchShutter(),
           (controller.value.isControlsVisible)
