@@ -73,6 +73,16 @@ class YoutubePlayer extends StatefulWidget {
   /// {@endtemplate}
   final Widget? bufferIndicator;
 
+  /// {@template youtube_player_flutter.bufferIndicator}
+  /// Overrides the default predefined overlay
+  /// {@endtemplate}
+  final Widget? customOverlay;
+
+  /// {@template youtube_player_flutter.bufferIndicator}
+  /// Overrides the default error widget
+  /// {@endtemplate}
+  final Widget? errorWidget;
+
   /// {@template youtube_player_flutter.progressColors}
   /// Overrides default colors of the progress bar, takes [ProgressColors].
   /// {@endtemplate}
@@ -150,6 +160,8 @@ class YoutubePlayer extends StatefulWidget {
     this.actionsPadding = const EdgeInsets.all(8.0),
     this.thumbnail,
     this.showVideoProgressIndicator = false,
+    this.customOverlay,
+    this.errorWidget,
   })  : progressColors = progressColors ?? const ProgressBarColors(),
         progressIndicatorColor = progressIndicatorColor ?? Colors.red;
 
@@ -239,57 +251,13 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
         child: Container(
           color: Colors.black,
           width: widget.width ?? MediaQuery.of(context).size.width,
-          child: _buildPlayer(
-            errorWidget: Container(
-              color: Colors.black87,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 5.0),
-                      Expanded(
-                        child: Text(
-                          errorString(
-                            controller.value.errorCode,
-                            videoId: controller.metadata.videoId.isNotEmpty
-                                ? controller.metadata.videoId
-                                : controller.initialVideoId,
-                          ),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w300,
-                            fontSize: 15.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16.0),
-                  Text(
-                    'Error Code: ${controller.value.errorCode}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: _buildPlayer(),
         ),
       ),
     );
   }
 
-  Widget _buildPlayer({required Widget errorWidget}) {
+  Widget _buildPlayer() {
     return AspectRatio(
       aspectRatio: _aspectRatio,
       child: Stack(
@@ -314,100 +282,35 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
               },
             ),
           ),
-          if (!controller.flags.hideThumbnail)
-            AnimatedOpacity(
-              opacity: controller.value.isPlaying ? 0 : 1,
-              duration: const Duration(milliseconds: 300),
-              child: widget.thumbnail ?? _thumbnail,
-            ),
-          if (!controller.value.isFullScreen &&
-              !controller.flags.hideControls &&
-              controller.value.position > const Duration(milliseconds: 100) &&
-              !controller.value.isControlsVisible &&
-              widget.showVideoProgressIndicator &&
-              !controller.flags.isLive)
-            Positioned(
-              bottom: -7.0,
-              left: -7.0,
-              right: -7.0,
-              child: IgnorePointer(
-                ignoring: true,
-                child: ProgressBar(
-                  colors: widget.progressColors.copyWith(
-                    handleColor: Colors.transparent,
-                  ),
-                ),
-              ),
-            ),
-          if (!controller.flags.hideControls) ...[
-            TouchShutter(
-              disableDragSeek: controller.flags.disableDragSeek,
-              timeOut: widget.controlsTimeOut,
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedOpacity(
-                opacity: !controller.flags.hideControls &&
-                        controller.value.isControlsVisible
-                    ? 1
-                    : 0,
-                duration: const Duration(milliseconds: 300),
-                child: controller.flags.isLive
-                    ? LiveBottomBar(
-                        liveUIColor: widget.liveUIColor,
-                        showLiveFullscreenButton:
-                            widget.controller.flags.showLiveFullscreenButton,
-                      )
-                    : Padding(
-                        padding: widget.bottomActions == null
-                            ? const EdgeInsets.all(0.0)
-                            : widget.actionsPadding,
-                        child: Row(
-                          children: widget.bottomActions ??
-                              [
-                                const SizedBox(width: 14.0),
-                                CurrentPosition(),
-                                const SizedBox(width: 8.0),
-                                ProgressBar(
-                                  isExpanded: true,
-                                  colors: widget.progressColors,
-                                ),
-                                RemainingDuration(),
-                                const PlaybackSpeedButton(),
-                                FullScreenButton(),
-                              ],
-                        ),
-                      ),
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AnimatedOpacity(
-                opacity: !controller.flags.hideControls &&
-                        controller.value.isControlsVisible
-                    ? 1
-                    : 0,
-                duration: const Duration(milliseconds: 300),
-                child: Padding(
-                  padding: widget.actionsPadding,
-                  child: Row(
-                    children: widget.topActions ?? [Container()],
-                  ),
-                ),
-              ),
-            ),
-          ],
-          if (!controller.flags.hideControls)
-            Center(
-              child: PlayPauseButton(),
-            ),
-          if (controller.value.hasError) errorWidget,
+          _buildThumbnail(),
+          _buildProgressBar(),
+          _hideControlsHandler(
+            children: [
+              _buildTouchShutter(),
+              _buildTopActions(),
+              _buildPlayPauseButton(),
+              _buildBottomActions(),
+            ],
+          ),
+          _buildError(),
         ],
       ),
+    );
+  }
+
+  Widget _hideControlsHandler({required List<Widget> children}) {
+    if (controller.flags.hideControls) return const SizedBox();
+
+    return widget.customOverlay ?? Column(children: children);
+  }
+
+  Widget _buildThumbnail() {
+    if (controller.flags.hideThumbnail) return const SizedBox();
+
+    return AnimatedOpacity(
+      opacity: controller.value.isPlaying ? 0 : 1,
+      duration: const Duration(milliseconds: 300),
+      child: widget.thumbnail ?? _thumbnail,
     );
   }
 
@@ -433,4 +336,150 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
           errorBuilder: (context, _, __) => Container(),
         ),
       );
+
+  Widget _buildProgressBar() {
+    if (!controller.value.isFullScreen &&
+        !controller.flags.hideControls &&
+        controller.value.position > const Duration(milliseconds: 100) &&
+        !controller.value.isControlsVisible &&
+        widget.showVideoProgressIndicator &&
+        !controller.flags.isLive) {
+      return Positioned(
+        bottom: -7.0,
+        left: -7.0,
+        right: -7.0,
+        child: IgnorePointer(
+          ignoring: true,
+          child: ProgressBar(
+            colors: widget.progressColors.copyWith(
+              handleColor: Colors.transparent,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox();
+  }
+
+  Widget _buildTopActions() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedOpacity(
+        opacity:
+            !controller.flags.hideControls && controller.value.isControlsVisible
+                ? 1
+                : 0,
+        duration: const Duration(milliseconds: 300),
+        child: Padding(
+          padding: widget.actionsPadding,
+          child: Row(
+            children: widget.topActions ?? [const SizedBox()],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayPauseButton() {
+    if (controller.flags.hideControls) return const SizedBox();
+    return Center(child: PlayPauseButton());
+  }
+
+  Widget _buildTouchShutter() {
+    return TouchShutter(
+      disableDragSeek: controller.flags.disableDragSeek,
+      timeOut: widget.controlsTimeOut,
+    );
+  }
+
+  Widget _buildBottomActions() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: AnimatedOpacity(
+        opacity:
+            !controller.flags.hideControls && controller.value.isControlsVisible
+                ? 1
+                : 0,
+        duration: const Duration(milliseconds: 300),
+        child: controller.flags.isLive
+            ? LiveBottomBar(
+                liveUIColor: widget.liveUIColor,
+                showLiveFullscreenButton:
+                    widget.controller.flags.showLiveFullscreenButton,
+              )
+            : Padding(
+                padding: widget.bottomActions == null
+                    ? const EdgeInsets.all(0.0)
+                    : widget.actionsPadding,
+                child: Row(
+                  children: widget.bottomActions ??
+                      [
+                        const SizedBox(width: 14.0),
+                        CurrentPosition(),
+                        const SizedBox(width: 8.0),
+                        ProgressBar(
+                          isExpanded: true,
+                          colors: widget.progressColors,
+                        ),
+                        RemainingDuration(),
+                        const PlaybackSpeedButton(),
+                        FullScreenButton(),
+                      ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    if (!controller.value.hasError) return const SizedBox();
+    return widget.errorWidget ??
+        Container(
+          color: Colors.black87,
+          padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 5.0),
+                  Expanded(
+                    child: Text(
+                      errorString(
+                        controller.value.errorCode,
+                        videoId: controller.metadata.videoId.isNotEmpty
+                            ? controller.metadata.videoId
+                            : controller.initialVideoId,
+                      ),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 15.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                'Error Code: ${controller.value.errorCode}',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+            ],
+          ),
+        );
+  }
 }
