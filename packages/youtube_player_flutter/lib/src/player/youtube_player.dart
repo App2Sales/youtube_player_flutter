@@ -306,9 +306,11 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
         fit: StackFit.expand,
         children: [
           _buildTouchShutter(),
-          (controller.value.isControlsVisible)
-              ? widget.customOverlay!
-              : const SizedBox(),
+          AnimatedOpacity(
+            opacity: (controller.value.isControlsVisible) ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: widget.customOverlay,
+          ),
         ],
       );
     }
