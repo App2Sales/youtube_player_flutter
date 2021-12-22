@@ -284,7 +284,7 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
           ),
           _buildThumbnail(),
           _buildProgressBar(),
-          _hideControlsHandler(
+          ..._hideControlsHandler(
             children: [
               _buildTouchShutter(),
               _buildTopActions(),
@@ -298,24 +298,21 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
     );
   }
 
-  Widget _hideControlsHandler({required List<Widget> children}) {
-    if (controller.flags.hideControls) return const SizedBox();
+  List<Widget> _hideControlsHandler({required List<Widget> children}) {
+    if (controller.flags.hideControls) return [];
 
     if (widget.customOverlay != null) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          _buildTouchShutter(),
-          AnimatedOpacity(
-            opacity: (controller.value.isControlsVisible) ? 1 : 0,
-            duration: const Duration(milliseconds: 300),
-            child: widget.customOverlay,
-          ),
-        ],
-      );
+      return [
+        _buildTouchShutter(),
+        AnimatedOpacity(
+          opacity: (controller.value.isControlsVisible) ? 1 : 0,
+          duration: const Duration(milliseconds: 300),
+          child: widget.customOverlay,
+        ),
+      ];
     }
 
-    return Column(children: children);
+    return children;
   }
 
   Widget _buildThumbnail() {
