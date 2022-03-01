@@ -213,12 +213,12 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
     _aspectRatio = widget.aspectRatio;
   }
 
-  @override
-  void didUpdateWidget(YoutubePlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    oldWidget.controller.removeListener(listener);
-    widget.controller.addListener(listener);
-  }
+  // @override
+  // void didUpdateWidget(YoutubePlayer oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   oldWidget.controller.removeListener(listener);
+  //   widget.controller.addListener(listener);
+  // }
 
   void listener() async {
     if (controller.value.isReady && _initialLoad) {
