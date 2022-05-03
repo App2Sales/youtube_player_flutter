@@ -396,7 +396,11 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
 
   Widget _buildPlayPauseButton() {
     if (controller.flags.hideControls) return const SizedBox();
-    return Center(child: PlayPauseButton());
+    return Center(
+      child: PlayPauseButton(
+        bufferIndicator: widget.bufferIndicator,
+      ),
+    );
   }
 
   Widget _buildTouchShutter() {
