@@ -79,6 +79,11 @@ class YoutubePlayer extends StatefulWidget {
   final Widget? customOverlay;
 
   /// {@template youtube_player_flutter.bufferIndicator}
+  /// Add fixed custom overlay on top of controls
+  /// {@endtemplate}
+  final Widget? fixedCustomOverlay;
+
+  /// {@template youtube_player_flutter.bufferIndicator}
   /// Overrides the default error widget
   /// {@endtemplate}
   final Widget? errorWidget;
@@ -161,6 +166,7 @@ class YoutubePlayer extends StatefulWidget {
     this.thumbnail,
     this.showVideoProgressIndicator = false,
     this.customOverlay,
+    this.fixedCustomOverlay,
     this.errorWidget,
   })  : progressColors = progressColors ?? const ProgressBarColors(),
         progressIndicatorColor = progressIndicatorColor ?? Colors.red;
@@ -286,6 +292,7 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
               _buildBottomActions(),
             ],
           ),
+          _buildFixedCustomOverlay(),
           _buildError(),
         ],
       ),
@@ -443,6 +450,13 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
               ),
       ),
     );
+  }
+
+  Widget _buildFixedCustomOverlay() {
+    if (widget.fixedCustomOverlay != null) {
+      return widget.fixedCustomOverlay!;
+    }
+    return const SizedBox();
   }
 
   Widget _buildError() {
