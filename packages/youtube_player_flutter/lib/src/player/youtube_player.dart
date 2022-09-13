@@ -179,8 +179,7 @@ class YoutubePlayer extends StatefulWidget {
     if (trimWhitespaces) url = url.trim();
 
     for (var exp in [
-      RegExp(
-          r"^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?v=([_\-a-zA-Z0-9]{11}).*$"),
+      RegExp(r"^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?v=([_\-a-zA-Z0-9]{11}).*$"),
       RegExp(
           r"^https:\/\/(?:www\.|m\.)?youtube(?:-nocookie)?\.com\/embed\/([_\-a-zA-Z0-9]{11}).*$"),
       RegExp(r"^https:\/\/youtu\.be\/([_\-a-zA-Z0-9]{11}).*$")
@@ -275,8 +274,7 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
             onEnded: (YoutubeMetaData metaData) {
               if (controller.flags.loop) {
                 controller.load(controller.metadata.videoId,
-                    startAt: controller.flags.startAt,
-                    endAt: controller.flags.endAt);
+                    startAt: controller.flags.startAt, endAt: controller.flags.endAt);
               }
 
               widget.onEnded?.call(metaData);
@@ -305,10 +303,9 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
     if (widget.customOverlay != null) {
       return [
         _buildTouchShutter(),
-        AnimatedOpacity(
-          opacity: (controller.value.isControlsVisible) ? 1 : 0,
+        AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
-          child: widget.customOverlay,
+          child: (controller.value.isControlsVisible) ? widget.customOverlay : const SizedBox(),
         ),
       ];
     }
@@ -380,10 +377,7 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
       left: 0,
       right: 0,
       child: AnimatedOpacity(
-        opacity:
-            !controller.flags.hideControls && controller.value.isControlsVisible
-                ? 1
-                : 0,
+        opacity: !controller.flags.hideControls && controller.value.isControlsVisible ? 1 : 0,
         duration: const Duration(milliseconds: 300),
         child: Padding(
           padding: widget.actionsPadding,
@@ -417,16 +411,12 @@ class _YoutubePlayerState extends State<YoutubePlayer> {
       left: 0,
       right: 0,
       child: AnimatedOpacity(
-        opacity:
-            !controller.flags.hideControls && controller.value.isControlsVisible
-                ? 1
-                : 0,
+        opacity: !controller.flags.hideControls && controller.value.isControlsVisible ? 1 : 0,
         duration: const Duration(milliseconds: 300),
         child: controller.flags.isLive
             ? LiveBottomBar(
                 liveUIColor: widget.liveUIColor,
-                showLiveFullscreenButton:
-                    widget.controller.flags.showLiveFullscreenButton,
+                showLiveFullscreenButton: widget.controller.flags.showLiveFullscreenButton,
               )
             : Padding(
                 padding: widget.bottomActions == null
